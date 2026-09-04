@@ -6,7 +6,7 @@ A small desktop app for macOS that saves videos to your own machine, built on
 Everything runs locally. Nothing is uploaded anywhere, there is no account, and
 the server listens on `127.0.0.1` only.
 
-> _Screenshot goes here._
+![Grabby](screenshot.png)
 
 ## What it does
 
