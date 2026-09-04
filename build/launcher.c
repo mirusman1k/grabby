@@ -7,12 +7,13 @@
 
 int main(void) {
     chdir(PROJECT_DIR);
-    if (access(PYTHON_BIN, X_OK) != 0) {   /* first run: build the venv */
+    if (access(PYTHON_BIN, X_OK) != 0) {
+        /* No virtualenv yet -- first run after a clone, or it was deleted.
+         * bootstrap.sh picks a Python 3.10+ interpreter (macOS only ships
+         * 3.9, which yt-dlp has deprecated) and reports its own errors. */
         system("/usr/bin/osascript -e 'display notification \"Setting up, one moment…\""
                " with title \"Grabby\"'");
-        system("/usr/bin/python3 -m venv '" PROJECT_DIR "/.venv' && "
-               "'" PROJECT_DIR "/.venv/bin/pip' install -q -r '"
-               PROJECT_DIR "/requirements.txt' pywebview");
+        if (system("'" PROJECT_DIR "/bootstrap.sh'") != 0) return 1;
     }
     execl(PYTHON_BIN, PYTHON_BIN, SCRIPT, (char *)NULL);
     return 1;

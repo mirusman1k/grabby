@@ -12,11 +12,9 @@ if curl -s -o /dev/null --max-time 1 "$URL"; then
   exit 0
 fi
 
-if [ ! -d .venv ]; then
+if [ ! -x .venv/bin/python ]; then
   echo "First run: setting up (takes a minute)…"
-  python3 -m venv .venv
-  ./.venv/bin/pip install --quiet --upgrade pip
-  ./.venv/bin/pip install --quiet -r requirements.txt
+  ./bootstrap.sh || exit 1
 fi
 
 # Open the browser once the server answers, without blocking the server itself.

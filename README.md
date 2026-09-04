@@ -21,11 +21,20 @@ the server listens on `127.0.0.1` only.
 ## Requirements
 
 - macOS 11 or later (Apple Silicon or Intel)
-- Python 3.10+
-- [ffmpeg](https://ffmpeg.org) — `brew install ffmpeg`
+- Xcode Command Line Tools — provides `git` and `clang`
+- **Python 3.10 or newer**
+- [ffmpeg](https://ffmpeg.org)
 
-ffmpeg is not optional: YouTube serves video and audio as separate streams for
-anything above 720p, and they have to be merged.
+Two of those deserve a note.
+
+**Python.** macOS only ships 3.9, which is too old — yt-dlp has deprecated it,
+and it fails outright on this code. Install a current one with `brew install
+python`. Grabby searches for a suitable interpreter on first launch and tells
+you plainly if it can't find one; it will never silently build a broken
+environment on the system 3.9.
+
+**ffmpeg** is not optional. YouTube serves video and audio as separate streams
+for anything above 720p, and they have to be merged.
 
 ## Install
 
@@ -41,6 +50,21 @@ tab. First launch sets up a virtualenv automatically.
 
 The app records the path it was built from, so **re-run `./build/make_app.sh`
 if you ever move the folder.**
+
+### Setting up on a new or wiped Mac
+
+Everything Grabby needs is in this repo plus four commands:
+
+```bash
+xcode-select --install                                    # git + clang
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install python ffmpeg
+git clone https://github.com/mirusman1k/grabby.git && cd grabby && ./build/make_app.sh
+```
+
+First launch creates the virtualenv itself — no further steps. If the
+environment is ever damaged, delete `.venv` and relaunch, or run
+`./bootstrap.sh` directly to rebuild it.
 
 ### Prefer a browser tab?
 
