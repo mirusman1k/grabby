@@ -288,7 +288,10 @@ button.quiet:hover:not(:disabled) { background: var(--surface-hi); color: var(--
 }
 
 /* --- error --- */
-.error {
+/* Scoped to the id, not the class: a job's state span also carries .error, and
+   a shared class rule was painting "failed" as a full error panel inside the
+   row. */
+#error {
   margin: 20px 0 0;
   padding: 13px 16px;
   background: var(--err-soft);
