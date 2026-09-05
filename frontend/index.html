@@ -7,38 +7,71 @@
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+  <div class="glow" aria-hidden="true"></div>
+
   <main>
     <header>
-      <h1>Grabby</h1>
-      <button id="reveal" class="ghost" type="button">Open folder</button>
+      <div class="brand">
+        <h1>Grabby</h1>
+        <p class="tagline">Save video and images from a link.</p>
+      </div>
+      <button id="reveal" class="ghost" type="button">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 4.5A1.75 1.75 0 0 1 3.5 2.75h2.4c.4 0 .78.16 1.06.44l.85.85h4.69c.97 0 1.75.78 1.75 1.75v6A1.75 1.75 0 0 1 12.5 13.5h-9A1.75 1.75 0 0 1 1.75 11.75z"/></svg>
+        Open folder
+      </button>
     </header>
 
-    <form id="lookup" autocomplete="off">
-      <input id="url" type="url" placeholder="Paste a video or playlist link" required spellcheck="false">
-      <button type="submit" id="lookupBtn">Fetch</button>
-    </form>
+    <section class="search">
+      <form id="lookup" autocomplete="off">
+        <div class="field">
+          <svg class="field-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 1.75a5 5 0 1 1-3.2 8.84l-1.9 1.9a.75.75 0 0 1-1.06-1.06l1.9-1.9a5 5 0 0 1 4.26-7.78m0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7"/></svg>
+          <input id="url" type="url" placeholder="Paste a YouTube, Instagram, X or LinkedIn link"
+                 required spellcheck="false" autocapitalize="off">
+        </div>
+        <button type="submit" id="lookupBtn">Fetch</button>
+      </form>
+
+      <!-- Public posts on every supported site work with this on None. It
+           exists for private profiles and for when a site starts rate-limiting.
+           Cookies are needed to look a link up, not just to download it, so
+           this sits with the URL box rather than down in the download
+           controls. -->
+      <div class="auth">
+        <label for="browser">Login</label>
+        <select id="browser"
+                title="Leave on None for public posts. Pick a browser only for private profiles, or if a site starts rate-limiting you."></select>
+        <span id="authHint" class="hint"></span>
+      </div>
+    </section>
 
     <p id="error" class="error" hidden></p>
 
     <section id="result" hidden>
-      <!-- single video -->
+      <!-- single video or image post -->
       <div id="videoCard" class="card" hidden>
-        <img id="thumb" alt="">
+        <div class="thumb-wrap">
+          <img id="thumb" alt="">
+        </div>
         <div class="meta">
           <h2 id="title"></h2>
           <p id="submeta"></p>
+          <div class="meta-actions">
+            <button type="button" class="ghost small" id="imagesBtn" hidden></button>
+            <button type="button" class="ghost small" id="avatarBtn" hidden></button>
+          </div>
         </div>
       </div>
 
-      <!-- playlist -->
+      <!-- playlist, carousel or profile -->
       <div id="playlistCard" class="card column" hidden>
         <div class="pl-head">
           <h2 id="plTitle"></h2>
           <p id="plMeta"></p>
         </div>
         <div class="pl-actions">
-          <button type="button" class="ghost" id="selAll">Select all</button>
-          <button type="button" class="ghost" id="selNone">Clear</button>
+          <button type="button" class="ghost small" id="selAll">Select all</button>
+          <button type="button" class="ghost small" id="selNone">Clear</button>
+          <button type="button" class="ghost small" id="imagesBtnPl" hidden></button>
           <span id="selCount"></span>
         </div>
         <ul id="entries"></ul>
@@ -46,27 +79,32 @@
 
       <!-- shared controls -->
       <div class="controls">
-        <label>
-          Quality
+        <label class="ctl">
+          <span>Quality</span>
           <select id="quality"></select>
         </label>
         <label class="check">
           <input type="checkbox" id="audioOnly">
-          Audio only (mp3)
+          <span>Audio only</span>
         </label>
-        <label class="check" id="maxQualityLabel" title="Allows 1440p and 4K, but the file will need VLC or IINA - QuickTime cannot play VP9/AV1.">
+        <label class="check" id="maxQualityLabel"
+               title="Allows 1440p and 4K, but the file will need VLC or IINA - QuickTime cannot play VP9/AV1.">
           <input type="checkbox" id="maxQuality">
-          Max quality (needs VLC)
+          <span>Max quality</span>
         </label>
         <button type="button" id="downloadBtn">Download</button>
       </div>
     </section>
 
     <section id="jobsWrap" hidden>
-      <h3>Downloads</h3>
+      <div class="section-head">
+        <h3>Downloads</h3>
+        <button type="button" class="ghost small quiet" id="clearDone" hidden>Clear finished</button>
+      </div>
       <ul id="jobs"></ul>
     </section>
   </main>
+
   <script src="/static/app.js"></script>
 </body>
 </html>

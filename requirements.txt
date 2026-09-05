@@ -1,5 +1,10 @@
 fastapi>=0.115
 uvicorn[standard]>=0.32
 yt-dlp>=2025.1.1
+# Lists Instagram profiles, which yt-dlp's own extractor no longer can.
+gallery-dl>=1.29
+# TLS impersonation. Instagram serves its logged-out post API only to clients
+# whose handshake looks like a real browser; without this, images 403.
+curl_cffi>=0.5.10
 pywebview>=5.0
 pyobjc-framework-Cocoa>=10.0; sys_platform == "darwin"
