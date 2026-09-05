@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import shutil
 import subprocess
 import threading
 import uuid
@@ -170,6 +171,18 @@ def _ydl_opts(job_id: str, quality: str, audio_only: bool, compatible: bool,
     if config.FFMPEG:
         opts["ffmpeg_location"] = config.FFMPEG
     if audio_only:
+        # Extracting audio downloads the source first, and on sites that serve
+        # audio in an mp4 container that source lands on exactly the path an
+        # already-downloaded video occupies -- which the extractor then
+        # deletes once it has the mp3, taking the video with it.
+        #
+        # yt-dlp's "temp" path only covers .part fragments; the complete file
+        # still lands in home before postprocessing. So the whole job runs
+        # inside the staging directory and _run moves the finished mp3 out,
+        # which keeps the saved name clean.
+        # One directory per job, so concurrent audio jobs cannot collide and
+        # cleanup can remove the whole thing without inspecting what is in it.
+        opts["outtmpl"] = str(config.TEMP_DIR / job_id / tmpl)
         opts["postprocessors"] = [{
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",
@@ -685,6 +698,9 @@ def friendly_error(raw: str, url: str, browser: str | None = None) -> str:
         return (f"No video found in that {label} post. Text, image and document "
                 f"posts have nothing to download.")
 
+    if "unable to obtain file audio codec" in low or "no audio" in low:
+        return "That video has no audio track, so there is nothing to extract."
+
     if "private" in low and "video" in low:
         return f"That {label} post is private."
     if any(k in low for k in ("not available", "has been removed", "does not exist",
@@ -750,6 +766,21 @@ def _finished_file(info: dict[str, Any]) -> tuple[str | None, str | None]:
     return downloads[0].get("filepath"), node.get("title") or info.get("title")
 
 
+def _move_out_of_staging(path_str: str, job_id: str) -> str:
+    """Move a finished audio file into place, keeping the folder structure the
+    output template built under the job's staging directory."""
+    staging = config.TEMP_DIR / job_id
+    src = Path(path_str)
+    try:
+        relative = src.relative_to(staging)
+    except ValueError:
+        return path_str  # not staged after all; leave it alone
+    dest = config.DOWNLOAD_DIR / relative
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    src.replace(dest)
+    return str(dest)
+
+
 def _run(job_id: str, url: str, quality: str, audio_only: bool, compatible: bool,
          platform: str = "youtube", browser: str | None = None,
          playlist_index: int | None = None, folder: str | None = None) -> None:
@@ -767,6 +798,8 @@ def _run(job_id: str, url: str, quality: str, audio_only: bool, compatible: bool
             with yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(url, download=True)
             path, title = _finished_file(info)
+            if audio_only and path:
+                path = _move_out_of_staging(path, job_id)
             _update(job_id, state="done", percent=100.0, filepath=path,
                     title=title or url, speed=None, eta=None)
         except NotImplementedError as exc:
@@ -775,6 +808,11 @@ def _run(job_id: str, url: str, quality: str, audio_only: bool, compatible: bool
             _update(job_id, state="error", error=friendly_error(str(exc), url, browser))
         except Exception as exc:  # noqa: BLE001 - surface anything else to the UI
             _update(job_id, state="error", error=f"{type(exc).__name__}: {exc}")
+        finally:
+            # A failed extraction leaves its half-finished source behind, so
+            # the staging directory is cleared whether the job worked or not.
+            if audio_only:
+                shutil.rmtree(config.TEMP_DIR / job_id, ignore_errors=True)
 
 
 def register_saved(title: str, filepath: str, platform: str,

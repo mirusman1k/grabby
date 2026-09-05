@@ -28,7 +28,18 @@ PORT = int(os.environ.get("PORT", "8000"))
 # How many downloads may run at once.
 MAX_CONCURRENT = int(os.environ.get("MAX_CONCURRENT", "3"))
 
+# Intermediates (partial downloads, the source file an mp3 is extracted from)
+# are staged here rather than in the download folder, so a half-finished or
+# about-to-be-deleted file never shares a name with something already saved.
+TEMP_DIR = DOWNLOAD_DIR / ".grabby-tmp"
+
 DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# A crash or a force-quit mid-download leaves a staging directory behind, and
+# nothing else ever reads it, so start each run with it empty.
+if TEMP_DIR.exists():
+    shutil.rmtree(TEMP_DIR, ignore_errors=True)
+TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # --------------------------------------------------------------------------

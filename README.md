@@ -280,7 +280,14 @@ limitation: yt-dlp takes the first `<video>` match and returns a single result,
 so there is no list for Grabby to offer.
 
 **Downloads are silent.** Check the source — many X posts are screen recordings
-with no audio track at all. Grabby will not add one that was never there.
+with no audio track at all. Grabby will not add one that was never there. Asking
+for audio-only from such a post says so plainly rather than failing obscurely.
+
+**Where is `.grabby-tmp`?** A hidden staging folder inside your download
+folder. Audio extraction downloads its source there first, because on sites
+that serve audio in an mp4 container that source would otherwise land on — and
+then delete — a video of the same post you had already saved. It is emptied at
+startup and after every job.
 
 ## How it works
 
